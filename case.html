@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Case IT</title>
+  <style>
+    /* Базовые стили и обнуление */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1a2a6c 0%, #271435 50%, #050510 100%);
+      background-attachment: fixed;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px 40px;
+      align-items: center;
+      background: rgba(5, 5, 15, 0.8);
+      backdrop-filter: blur(15px);
+      border-bottom: 2px solid rgba(255, 170, 0, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: 900;
+      color: #ffaa00;
+      text-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+      cursor: pointer;
+      letter-spacing: 2px;
+    }
+
+    .nav-btn {
+      padding: 10px 22px;
+      background: rgba(255, 170, 0, 0.1);
+      color: #ffaa00;
+      border: 1px solid #ffaa00;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    .nav-btn:hover { background: #ffaa00; color: #000; box-shadow: 0 0 20px #ffaa00; }
+
+    /* Экраны */
+    .screen { display: none; min-height: calc(100vh - 80px); padding: 40px 20px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+    /* Карточки на главном экране */
+    .cards-container { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+    .card {
+      background: linear-gradient(180deg, rgba(30,30,50,0.8) 0%, rgba(15,15,25,0.9) 100%);
+      border-radius: 24px;
+      padding: 30px;
+      width: 290px;
+      text-align: center;
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+      backdrop-filter: blur(10px);
+    }
+    
+    /* Стилизация рамок и уникального свечения карточек под их названия */
+    .card.easy-case { border: 2px solid #5e98d9; box-shadow: 0 0 15px rgba(94,152,217,0.2); }
+    .card.medium-case { border: 2px solid #4b69ff; box-shadow: 0 0 15px rgba(75,105,255,0.2); }
+    .card.hard-case { border: 2px solid #eb4b4b; box-shadow: 0 0 15px rgba(235,75,75,0.2); }
+    .card.animals-case { border: 2px solid #00ff88; box-shadow: 0 0 15px rgba(0,255,136,0.2); }
+    .card.photoshop-case { border: 2px solid #00c6ff; box-shadow: 0 0 15px rgba(0,198,255,0.2); }
+    
+    .card:hover { transform: translateY(-12px); }
+    .card.easy-case:hover { box-shadow: 0 0 30px rgba(94,152,217,0.5); }
+    .card.medium-case:hover { box-shadow: 0 0 30px rgba(75,105,255,0.5); }
+    .card.hard-case:hover { box-shadow: 0 0 30px rgba(235,75,75,0.5); }
+    .card.animals-case:hover { box-shadow: 0 0 30px rgba(0,255,136,0.5); }
+    .card.photoshop-case:hover { box-shadow: 0 0 30px rgba(0,198,255,0.5); }
+
+    /* Маленькие иконки кейсов в меню */
+    .case-icon { width: 120px; height: 85px; margin: 15px auto 25px; position: relative; animation: floatAnim 3s ease-in-out infinite; }
+    @keyframes floatAnim {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(1.5deg); }
+    }
+    .icon-lid { width: 100%; height: 23px; border-radius: 8px 8px 3px 3px; background: linear-gradient(90deg, #444, #666, #333); border-bottom: 2px solid #222; }
+    .icon-body { width: 96%; height: 58px; margin: 0 auto; border-radius: 0 0 10px 10px; position: relative; }
+    
+    /* Подбор градиентов для корпусов кейсов */
+    .easy-case .icon-body { background: linear-gradient(135deg, #2b4766, #142233); border: 2px solid #5e98d9; }
+    .medium-case .icon-body { background: linear-gradient(135deg, #1f2866, #0e1233); border: 2px solid #4b69ff; }
+    .hard-case .icon-body { background: linear-gradient(135deg, #662020, #330d0d); border: 2px solid #eb4b4b; }
+    .animals-case .icon-body { background: linear-gradient(135deg, #114729, #072112); border: 2px solid #00ff88; }
+    .photoshop-case .icon-body { background: linear-gradient(135deg, #103e4d, #061e26); border: 2px solid #00c6ff; }
+    
+    .icon-lock { position: absolute; top: -2px; left: 50%; transform: translateX(-50%); width: 18px; height: 10px; background: #ffaa00; border-radius: 2px; }
+
+    .card h2 { margin-bottom: 10px; font-size: 24px; }
+    .easy-case h2 { color: #5e98d9; text-shadow: 0 0 10px rgba(94,152,217,0.3); } 
+    .medium-case h2 { color: #4b69ff; text-shadow: 0 0 10px rgba(75,105,255,0.3); } 
+    .hard-case h2 { color: #eb4b4b; text-shadow: 0 0 10px rgba(235,75,75,0.3); }
+    .animals-case h2 { color: #00ff88; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+    .photoshop-case h2 { color: #00c6ff; text-shadow: 0 0 10px rgba(0,198,255,0.3); }
+
+    .card ul { text-align: left; margin: 20px 0; color: #aaa; font-size: 14px; list-style: none; }
+    .card ul li { margin-bottom: 8px; }
+    .card ul li::before { content: "▪ "; color: #ffaa00; margin-right: 5px; }
+
+    /* Тематическое окрашивание кнопок "Выбрать" */
+    .card.easy-case .btn { background: linear-gradient(135deg, #5e98d9, #2b4766); color: white; }
+    .card.medium-case .btn { background: linear-gradient(135deg, #4b69ff, #1f2866); color: white; }
+    .card.hard-case .btn { background: linear-gradient(135deg, #eb4b4b, #662020); color: white; }
+    .card.animals-case .btn { background: linear-gradient(135deg, #00ff88, #114729); color: #000; }
+    .card.photoshop-case .btn { background: linear-gradient(135deg, #00c6ff, #103e4d); color: white; }
+    .card .btn:hover { transform: scale(1.05); box-shadow: 0 0 15px currentcolor; }
+    .game-container { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+    .case-wrapper {
+      width: 420px;
+      height: 300px;
+      position: relative;
+      perspective: 1200px;
+      margin-bottom: 30px;
+    }
+
+    .big-case {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s ease;
+    }
+
+    .big-case-body {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 190px;
+      border-radius: 12px 12px 24px 24px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8), inset 0 0 30px rgba(255,255,255,0.05);
+      z-index: 5;
+    }
+    
+    
+    .case-easy .big-case-body { background: linear-gradient(135deg, #1e354f, #0d1724); border: 3px solid #5e98d9; }
+    .case-medium .big-case-body { background: linear-gradient(135deg, #161b40, #0a0d1f); border: 3px solid #4b69ff; }
+    .case-hard .big-case-body { background: linear-gradient(135deg, #4a1a1a, #210b0b); border: 3px solid #eb4b4b; }
+    .case-animals .big-case-body { background: linear-gradient(135deg, #0d331e, #05140c); border: 3px solid #00ff88; }
+    .case-photoshop .big-case-body { background: linear-gradient(135deg, #0c2d38, #041317); border: 3px solid #00c6ff; }
+
+    .big-case-lid {
+      position: absolute;
+      top: 40px;
+      width: 100%;
+      height: 75px;
+      border-radius: 16px 16px 5px 5px;
+      transform-origin: top center;
+      transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+      z-index: 10;
+    }
+    .case-easy .big-case-lid { background: linear-gradient(135deg, #2b4b70, #142336); border: 3px solid #5e98d9; border-bottom: 5px solid #0d1724; }
+    .case-medium .big-case-lid { background: linear-gradient(135deg, #212963, #0f1330); border: 3px solid #4b69ff; border-bottom: 5px solid #0a0d1f; }
+    .case-hard .big-case-lid { background: linear-gradient(135deg, #6b2424, #331111); border: 3px solid #eb4b4b; border-bottom: 5px solid #210b0b; }
+    .case-animals .big-case-lid { background: linear-gradient(135deg, #165431, #0a2616); border: 3px solid #00ff88; border-bottom: 5px solid #05140c; }
+    .case-photoshop .big-case-lid { background: linear-gradient(135deg, #13495c, #09212a); border: 3px solid #00c6ff; border-bottom: 5px solid #041317; }
+    .big-case.open .big-case-lid { transform: rotateX(-130deg); }
+
+    .big-case-handle {
+      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 18px; border: 4px solid rgba(255,255,255,0.2); border-bottom: none; border-radius: 10px 10px 0 0;
+    }
+    .big-case-lock {
+      position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+      width: 35px; height: 16px; background: #ffaa00; border-radius: 4px; box-shadow: 0 0 15px rgba(255,170,0,0.4);
+    }
+    .case-glow {
+      position: absolute; inset: 0; border-radius: 20px;
+      opacity: 0; transform: scale(0.6); pointer-events: none; z-index: 6;
+    }
+    .case-easy .case-glow { background: radial-gradient(circle, rgba(94,152,217,0.9) 0%, transparent 70%); }
+    .case-medium .case-glow { background: radial-gradient(circle, rgba(75,105,255,0.9) 0%, transparent 70%); }
+    .case-hard .case-glow { background: radial-gradient(circle, rgba(235,75,75,0.9) 0%, transparent 70%); }
+    .case-animals .case-glow { background: radial-gradient(circle, rgba(0,255,136,0.9) 0%, transparent 70%); }
+    .case-photoshop .case-glow { background: radial-gradient(circle, rgba(0,198,255,0.9) 0%, transparent 70%); }
+
+    .big-case.open .case-glow { animation: glowPulse 1.5s ease-out forwards; }
+    @keyframes glowPulse {
+      0% { opacity: 0; transform: scale(0.6); }
+      30% { opacity: 1; transform: scale(1.3); }
+      100% { opacity: 0; transform: scale(1.8); }
+    }
+    .particles-layer { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+    .pixel-particle { position: absolute; width: 6px; height: 6px; border-radius: 2px; animation: flyOut 1.2s ease-out forwards; }
+    @keyframes flyOut {
+      from { transform: translate(0,0) rotate(0deg); opacity: 1; }
+      to { transform: translate(var(--x), var(--y)) rotate(360deg); opacity: 0; }
+    }
+    .roulette-viewport {
+      width: 650px; max-width: 95vw; height: 130px;
+      background: #07070f; border: 3px solid #222235; border-radius: 20px;
+      position: relative; overflow: hidden; display: none; margin-top: 20px;
+      box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 10px 35px rgba(0,0,0,0.6);
+    }
+    .roulette-viewport::before {
+      content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+      width: 4px; background: #ff3b30; z-index: 15; transform: translateX(-50%);
+      box-shadow: 0 0 12px #ff3b30;
+    }
+    .roulette-track { display: flex; position: absolute; left: 0; top: 12px; height: 100px; width: max-content; will-change: transform; }
+    .roulette-item {
+      width: 125px; height: 100px; margin: 0 6px; border-radius: 12px;
+      background: #131322; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 11px;
+      font-weight: bold; text-align: center; padding: 6px; border-bottom: 5px solid #fff;
+    }
+    
+    .rarity-blue { border-bottom-color: #5e98d9; background: linear-gradient(180deg, #151c28, #11111c); }
+    .rarity-purple { border-bottom-color: #4b69ff; background: linear-gradient(180deg, #13173a, #11111c); }
+    .rarity-pink { border-bottom-color: #d32ce6; background: linear-gradient(180deg, #37153d, #11111c); }
+    .rarity-red { border-bottom-color: #eb4b4b; background: linear-gradient(180deg, #441414, #11111c); }
+    .rarity-green { border-bottom-color: #00ff88; background: linear-gradient(180deg, #0e291b, #11111c); }
+    .rarity-cyan { border-bottom-color: #00c6ff; background: linear-gradient(180deg, #0d2730, #11111c); }
+
+    .task-card {
+      width: 600px; max-width: 95vw; background: rgba(12, 12, 25, 0.98);
+      border: 2px solid #ffaa00; border-radius: 24px; padding: 35px;
+      display: none; opacity: 0; transform: scale(0.9); transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8); margin-top: 10px;
+    }
+    .task-card.show { display: block; opacity: 1; transform: scale(1); }
+    textarea {
+      width: 100%; height: 85px; background: #030308; border: 1px solid #2d2d42;
+      border-radius: 12px; color: #fff; padding: 14px; margin: 15px 0; outline: none; font-size: 15px;
+    }
+    textarea:focus { border-color: #ffaa00; box-shadow: 0 0 10px rgba(255,170,0,0.3); }
+
+    .btn {
+      padding: 16px 40px; border: none; font-size: 16px;
+      background: linear-gradient(135deg, #ffaa00, #ff7700);
+      color: #000; font-weight: 800; border-radius: 14px;
+      cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .btn:hover { transform: scale(1.03); box-shadow: 0 6px 25px rgba(255, 170, 0, 0.4); }
+
+    .terminal {
+      position: fixed; bottom: 20px; left: 20px; background: #04040a;
+      border-left: 3px solid #ffaa00; padding: 12px 20px; font-family: monospace;
+      font-size: 12px; color: #ffaa00; z-index: 200; border-radius: 0 8px 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo" onclick="goHome()">CASE IT</div>
+    <button class="nav-btn" id="backBtn" style="display:none" onclick="goHome()">В меню</button>
+  </header>
+
+  <div id="homeScreen" class="screen active">
+    <div class="cards-container">
+      <div class="card easy-case">
+        <div class="case-icon">
+          <div class="icon-lid"></div>
+          <div class="icon-body"><div class="icon-lock"></div></div>
+        </div>
+        <h2>Основы</h2>
+        <p style="opacity: 0.5; font-size: 12px;">Ширпотреб / Армейское</p>
+        <ul>
+          <li>Переменные и типы данных</li>
+          <li>Базовый синтаксис HTML/CSS</li>
+          <li>Основы алгоритмов</li>
+        </ul>
+        <button class="btn" onclick="initGame('easy')">Выбрать</button>
+      </div>
+
+      <div class="card medium-case">
+        <div class="case-icon">
+          <div class="icon-lid"></div>
+          <div class="icon-body"><div class="icon-lock"></div></div>
+        </div>
+        <h2>Скрипты</h2>
+        <p style="opacity: 0.5; font-size: 12px;">Запрещенное / Засекреченное</p>
+        <ul>
+          <li>Логика на чистом JavaScript</li>
+          <li>Управление деревом DOM</li>
+          <li>Методы массивов и циклы</li>
+        </ul>
+        <button class="btn" onclick="initGame('medium')">Выбрать</button>
+      </div>
+
+      <div class="card hard-case">
+        <div class="case-icon">
+          <div class="icon-lid"></div>
+          <div class="icon-body"><div class="icon-lock"></div></div>
+        </div>
+        <h2>Инженер</h2>
+        <p style="opacity: 0.5; font-size: 12px;">Тайное / Архитектурное</p>
+        <ul>
+          <li>Компоненты и хуки React</li>
+          <li>Асинхронность и методы API</li>
+          <li>Сложные структуры JS</li>
+        </ul>
+        <button class="btn" onclick="initGame('hard')">Выбрать</button>
+      </div>
+
+      <div class="card animals-case">
+        <div class="case-icon">
+          <div class="icon-lid"></div>
+          <div class="icon-body"><div class="icon-lock"></div></div>
+        </div>
+        <h2>Фауна</h2>
+        <p style="opacity: 0.5; font-size: 12px;">Экзотическое / Дикая природа</p>
+        <ul>
+          <li>Удивительный мир животных</li>
+          <li>Среда обитания и фауна</li>
+          <li>Мировые рекорды природы</li>
+        </ul>
+        <button class="btn" onclick="initGame('animals')">Выбрать</button>
+      </div>
+
+      <div class="card photoshop-case">
+        <div class="case-icon">
+          <div class="icon-lid"></div>
+          <div class="icon-body"><div class="icon-lock"></div></div>
+        </div>
+        <h2>Adobe CC</h2>
+        <p style="opacity: 0.5; font-size: 12px;">Мастерская / Графика</p>
+        <ul>
+          <li>Горячие клавиши Photoshop</li>
+          <li>Слои, маски и инструменты</li>
+          <li>Цифровая обработка фото</li>
+        </ul>
+        <button class="btn" onclick="initGame('photoshop')">Выбрать</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <div class="game-container">
+      
+      <div class="case-wrapper" id="caseWrapperBlock">
+        <div class="big-case" id="interactiveCase">
+          <div class="big-case-lid"><div class="big-case-handle"></div></div>
+          <div class="big-case-body"><div class="big-case-lock"></div></div>
+          <div class="case-glow"></div>
+        </div>
+        <div class="particles-layer" id="particlesContainer"></div>
+      </div>
+
+      <div class="roulette-viewport" id="roulette">
+        <div class="roulette-track" id="track"></div>
+      </div>
+
+      <button class="btn" id="openBtn" onclick="processCaseOpeningSequence()">Вскрыть Кейс</button>
+    </div>
+
+    <div class="task-card" id="taskCard">
+      <h3 id="qTitle" style="color:#ffaa00; margin-bottom:12px; text-transform: uppercase;">ВЫПАВШЕЕ ЗАДАНИЕ</h3>
+      <p id="qText" style="line-height:1.6; font-size: 17px;"></p>
+      <textarea id="userInput" placeholder="Введите ваш вариант ответа..."></textarea>
+      <button class="btn" style="width: 100%" onclick="checkAnswer()">Подтвердить ответ</button>
+      <p id="feedback" style="margin-top:15px; font-weight:bold; font-size: 16px;"></p>
+    </div>
+  </div>
+
+  <div class="terminal" id="terminal">> Подключение стабильно. Выберите кейс.</div>
+
+  <script>
+    const DB = {
+      easy: [
+        { q: 'Как называется ячейка памяти для хранения данных?', a: ['переменная', 'variable'] },
+        { q: 'Напиши HTML-тег для самого крупного заголовка.', a: ['<h1>', 'h1'] },
+        { q: 'CSS: Какое свойство меняет цвет текста?', a: ['color'] },
+        { q: 'Что выведет выражение 2 + "2" в JavaScript?', a: ['22'] },
+        { q: 'Как называется цикл, проверяющий условие до выполнения тела?', a: ['while'] },
+        { q: 'Тип данных для логических значений Истина/Ложь?', a: ['boolean', 'булево', 'bool'] },
+        { q: 'HTML: Какой тег используется для построения ссылок?', a: ['<a>', 'a'] },
+        { q: 'CSS: Свойство для регулирования жирности шрифта?', a: ['font-weight'] },
+        { q: 'Как программисты называют непредвиденную ошибку в коде?', a: ['баг', 'bug'] },
+        { q: 'HTML: Базовый тег для создания нумерованного списка?', a: ['<ol>', 'ol'] },
+        { q: 'Какое значение имеет индекс самого первого элемента массива?', a: ['0', 'ноль'] },
+        { q: 'CSS: Свойство, задающее стиль шрифта (например, italic)?', a: ['font-style'] },
+        { q: 'Какой символ используется для присваивания значения переменной?', a: ['='] },
+        { q: 'HTML: Тег для принудительного переноса строки без создания абзаца?', a: ['<br>', 'br'] },
+        { q: 'CSS: Какое базовое свойство задает семейство шрифтов?', a: ['font-family'] },
+        { q: 'Как называется процесс склеивания двух или более строк?', a: ['конкатенация'] },
+        { q: 'Базовый тип данных для хранения целых чисел в программировании?', a: ['int', 'integer', 'число'] },
+        { q: 'HTML: Одиночный тег для вставки изображения на страницу?', a: ['<img>', 'img'] },
+        { q: 'Как называется функция, которая вызывает внутри себя саму себя?', a: ['рекурсия'] },
+        { q: 'CSS: Свойство для добавления подчеркивания текста?', a: ['text-decoration'] }
+      ],
+      medium: [
+        { q: 'JS: Какой стандартный метод удаляет последний элемент массива?', a: ['pop', 'pop()'] },
+        { q: 'Какое современное ключевое слово создает неизменяемую константу?', a: ['const'] },
+        { q: 'Как называется событие клика мышью на элемент в JS?', a: ['onclick', 'click'] },
+        { q: 'JS: Напиши оператор строгого сравнения равенства.', a: ['==='] },
+        { q: 'Глобальный метод преобразования строки в целое число в JS?', a: ['parseInt'] },
+        { q: 'Git: Команда для отправки локальных коммитов на удаленный сервер?', a: ['git push'] },
+        { q: 'Как называется представление HTML-документа в виде дерева объектов?', a: ['dom'] },
+        { q: 'JS: Какое свойство позволяет узнать текущую длину массива?', a: ['length'] },
+        { q: 'Свойство для настройки внутренних отступов элемента в CSS?', a: ['padding'] },
+        { q: 'JS: Какое зарезервированное слово немедленно прерывает выполнение цикла?', a: ['break'] },
+        { q: 'Какая функция вызывает стандартное браузерное окно с уведомлением?', a: ['alert'] },
+        { q: 'JS: Что вернет выражение typeof []?', a: ['object'] },
+        { q: 'Метод объекта document для быстрого поиска элемента по его ID?', a: ['getElementById'] },
+        { q: 'CSS: Какое позиционирование фиксирует элемент относительно окна просмотра?', a: ['fixed'] },
+        { q: 'Git: С помощью какой команды можно создать новую ветку?', a: ['git branch'] },
+        { q: 'JS: Ключевое слово для декларации класса объектов?', a: ['class'] },
+        { q: 'Какой стандартный метод добавляет новый элемент в конец массива?', a: ['push'] },
+        { q: 'JS: Метод массива для перебора без возврата нового массива?', a: ['forEach'] },
+        { q: 'Какую область видимости имеет переменная, объявленная через let внутри функции?', a: ['локальную', 'локальная'] },
+        { q: 'CSS: Свойство скрытия элемента с сохранением занимаемого им места?', a: ['visibility'] }
+      ],
+      hard: [
+        { q: 'React: Базовый хук для декларации и изменения состояния?', a: ['useState'] },
+        { q: 'JS: Метод, используемый для слияния двух или более массивов?', a: ['concat'] },
+        { q: 'Ключевое слово для приостановки выполнения async-функции до резолва промиса?', a: ['await'] },
+        { q: 'React: Какой хук предназначен для обработки побочных эффектов?', a: ['useEffect'] },
+        { q: 'JS: Операция деструктуризации через три точки (...) называется?', a: ['spread', 'спред'] },
+        { q: 'Как называется функция, передаваемая аргументом в другую функцию?', a: ['callback', 'коллбэк'] },
+        { q: 'В каком состоянии находится успешно выполненный Promise?', a: ['resolved', 'fulfilled'] },
+        { q: 'Легковесная и быстрая копия оригинального DOM в React называется...', a: ['virtual dom', 'виртуальный дом'] },
+        { q: 'JS: Механизм, при котором функция помнит переменные из внешнего окружения?', a: ['замыкание', 'closure'] },
+        { q: 'CSS: Значение свойства display для активации гибкой сетки макета?', a: ['flex', 'display: flex'] },
+        { q: 'JS: Ключевое слово-ссылка на контекст вызова текущего объекта?', a: ['this'] },
+        { q: 'React: Какой атрибут критически важен при отрисовке списков?', a: ['key'] },
+        { q: 'Что гарантированно возвращает любая функция, помеченная как async?', a: ['promise', 'промис'] },
+        { q: 'Какой формат обмена данными является стандартом при работе с REST API?', a: ['json'] },
+        { q: 'JS: Какой метод ищет и возвращает первый индекс элемента в массиве?', a: ['indexOf'] },
+        { q: 'CSS: Свойство, определяющее порядок перекрытия элементов по оси Z?', a: ['z-index'] },
+        { q: 'React: Как называются параметры, передаваемые в дочернил компонент?', a: ['props', 'пропсы'] },
+        { q: 'JS: С помощью какого оператора проверяется базовый тип значения?', a: ['typeof'] },
+        { q: 'Как называется тип экспорта из модуля, использующий слово default?', a: ['default', 'по умолчанию'] },
+        { q: 'Какая встроенная функция преобразует JSON-строку в валидный JS-объект?', a: ['JSON.parse'] }
+      ],
+      animals: [
+        { q: 'Какое млекопитающее является самым крупным на Земле?', a: ['синий кит', 'кит'] },
+        { q: 'Как называется единственная птица, способная летать назад?', a: ['колибри'] },
+        { q: 'Какое животное называют «кораблем пустыни»?', a: ['верблюд'] },
+        { q: 'Какое хищное млекопитающее является самым быстрым на суше?', a: ['гепард'] },
+        { q: 'Как называют детеныша овцы?', a: ['ягненок', 'барашек'] }
+      ],
+      photoshop: [
+        { q: 'Какая горячая клавиша в Photoshop выбирает инструмент Кисть (Brush)?', a: ['b'] },
+        { q: 'Какая комбинация клавиш отменяет последнее действие в Photoshop?', a: ['ctrl+z', 'cmd+z'] },
+        { q: 'Как называется инструмент для быстрого копирования чистых пикселей на дефект (штамп)?', a: ['clone stamp', 'штамп'] },
+        { q: 'Какое расширение файла является стандартным для сохранения проектов Photoshop с сохранением слоев?', a: ['psd'] },
+        { q: 'Какой инструмент используется для выделения объектов сложной формы «вручную» по точкам?', a: ['перо', 'pen tool', 'лассо'] }
+      ]
+    };
+
+    let state = { diff: 'easy', queue: [], currentQ: null };
+    const rarityClasses = ['rarity-blue', 'rarity-purple', 'rarity-pink', 'rarity-red'];
+
+    function log(msg) { document.getElementById('terminal').innerText = `> ${msg}`; }
+
+    function initGame(diff) {
+      state.diff = diff;
+      state.queue = [...DB[diff]].sort(() => Math.random() - 0.5);
+      
+      document.getElementById('homeScreen').classList.remove('active');
+      document.getElementById('gameScreen').classList.add('active');
+      document.getElementById('backBtn').style.display = 'block';
+      
+      const wrap = document.getElementById('caseWrapperBlock');
+      wrap.className = 'case-wrapper case-' + diff;
+      wrap.style.display = 'block';
+      
+      document.getElementById('interactiveCase').classList.remove('open');
+      document.getElementById('roulette').style.display = 'none';
+      document.getElementById('taskCard').classList.remove('show');
+      document.getElementById('openBtn').style.display = 'block';
+      
+      const colorsMap = { easy: '#5e98d9', medium: '#4b69ff', hard: '#eb4b4b', animals: '#00ff88', photoshop: '#00c6ff' };
+      document.getElementById('qTitle').style.color = colorsMap[diff];
+      document.getElementById('taskCard').style.borderColor = colorsMap[diff];
+      
+      log(`Кейс [Серия: ${diff.toUpperCase()}] установлен на стенд.`);
+    }
+
+    function goHome() {
+      document.getElementById('gameScreen').classList.remove('active');
+      document.getElementById('homeScreen').classList.add('active');
+      document.getElementById('backBtn').style.display = 'none';
+      log("Возврат в инвентарь.");
+    }
+
+    function explodeNeonParticles() {
+      const pContainer = document.getElementById('particlesContainer');
+      pContainer.innerHTML = '';
+      const colorsMap = { easy: '#5e98d9', medium: '#4b69ff', hard: '#eb4b4b', animals: '#00ff88', photoshop: '#00c6ff' };
+      const currentCaseColor = colorsMap[state.diff];
+
+      for (let i = 0; i < 50; i++) {
+        const p = document.createElement('div');
+        p.classList.add('pixel-particle');
+        p.style.left = '50%';
+        p.style.top = '60%';
+        p.style.backgroundColor = currentCaseColor;
+        p.style.boxShadow = `0 0 12px ${currentCaseColor}`;
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 280 + 100;
+        
+        p.style.setProperty('--x', Math.cos(angle) * speed + 'px');
+        p.style.setProperty('--y', Math.sin(angle) * speed + 'px');
+        
+        pContainer.appendChild(p);
+      }
+    }
+
+    function processCaseOpeningSequence() {
+      document.getElementById('openBtn').style.display = 'none';
+      const bigCase = document.getElementById('interactiveCase');
+      
+      log("Генерация хэш-ключа... Разблокировка кейса...");
+      bigCase.classList.add('open');
+      
+      setTimeout(explodeNeonParticles, 150);
+
+      setTimeout(() => {
+        document.getElementById('caseWrapperBlock').style.display = 'none';
+        startRouletteSpinning();
+      }, 1000);
+    }
+
+    function startRouletteSpinning() {
+      const rouletteEl = document.getElementById('roulette');
+      const track = document.getElementById('track');
+      rouletteEl.style.display = 'block';
+      track.innerHTML = '';
+      track.style.transition = 'none';
+      track.style.transform = 'translateX(0px)';
+
+      if (state.queue.length === 0) {
+        state.queue = [...DB[state.diff]].sort(() => Math.random() - 0.5);
+      }
+      state.currentQ = state.queue.pop();
+
+      const totalItems = 35;
+      const targetIndex = 28;
+
+      const dropThemeMap = {
+        easy: { cls: 'rarity-blue', txt: '✦ ОСНОВЫ ✦', color: '#5e98d9' },
+        medium: { cls: 'rarity-purple', txt: '✦ СКРИПТ ✦', color: '#4b69ff' },
+        hard: { cls: 'rarity-red', txt: '✦ ИНЖЕНЕР ✦', color: '#eb4b4b' },
+        animals: { cls: 'rarity-green', txt: '✦ ФАУНА ✦', color: '#00ff88' },
+        photoshop: { cls: 'rarity-cyan', txt: '✦ ADOBE CC ✦', color: '#00c6ff' }
+      };
+      
+      const currentDropConfig = dropThemeMap[state.diff];
+
+      for (let i = 0; i < totalItems; i++) {
+        const item = document.createElement('div');
+        item.className = 'roulette-item ';
+        
+        if (i === targetIndex) {
+          item.className += currentDropConfig.cls;
+          item.innerHTML = `<span style="color:${currentDropConfig.color}">${currentDropConfig.txt}</span><br>Задание #${7 - state.queue.length}`;
+        } else {
+          const randRarity = rarityClasses[Math.floor(Math.random() * rarityClasses.length)];
+          item.className += randRarity;
+          item.innerHTML = `<span>КОД ПРЕДМЕТА</span><br>#${Math.floor(Math.random() * 899 + 100)}`;
+        }
+        track.appendChild(item);
+      }
+
+      log("Запуск прокрутки ленты... Определение дропа...");
+
+      setTimeout(() => {
+        track.style.transition = 'transform 4.5s cubic-bezier(0.1, 0.8, 0.1, 1)';
+        const itemWidth = 125 + 12;
+        const viewportWidth = rouletteEl.offsetWidth;
+        const targetOffset = -(targetIndex * itemWidth) + (viewportWidth / 2) - (itemWidth / 2);
+        track.style.transform = `translateX(${targetOffset}px)`;
+      }, 50);
+
+      setTimeout(() => {
+        log("Дроп получен! Расшифруйте сигнатуру структуры.");
+        document.getElementById('qText').innerText = state.currentQ.q;
+        document.getElementById('userInput').value = '';
+        document.getElementById('feedback').innerText = '';
+        
+        document.getElementById('taskCard').style.display = 'block';
+        setTimeout(() => { document.getElementById('taskCard').classList.add('show'); }, 50);
+      }, 4700);
+    }
+
+    function checkAnswer() {
+      const input = document.getElementById('userInput').value.trim().toLowerCase();
+      const fb = document.getElementById('feedback');
+      const isCorrect = state.currentQ.a.some(ans => input.includes(ans.toLowerCase()));
+
+      if (isCorrect) {
+        fb.innerText = "Правильно";
+        fb.style.color = "#00ff88";
+        log("Успешная верификация сессии.");
+        
+        setTimeout(() => {
+          document.getElementById('taskCard').classList.remove('show');
+          document.getElementById('roulette').style.display = 'none';
+          
+          const wrap = document.getElementById('caseWrapperBlock');
+          document.getElementById('interactiveCase').classList.remove('open');
+          wrap.style.display = 'block';
+          
+          document.getElementById('openBtn').style.display = 'block';
+        }, 2200);
+      } else {
+        fb.innerText = "Не правильно";
+        fb.style.color = "#ff4444";
+        log("В доступе отказано. Ошибка структуры.");
+      }
+    }
+  </script>
+</body>
+</html>
